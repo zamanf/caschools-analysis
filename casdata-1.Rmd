@@ -1,0 +1,121 @@
+---
+title: "Analysis of California Schools Test Data"
+author: "Zaman (adopted from R-bloggers)"
+date: "July 9, 2016"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Data Science Steps
+
+#### 1. Hypothesis Generation
+Understanding the problem better by brainstorming possible factors that can impact the outcome
+
+#### 2. Data Exploration
+Looking at categorical and continuous feature summaries and making inferences about the data.
+
+#### 3. Data Cleaning
+Either filling in (with averages or default values) or removing missing values in the data and checking for outliers
+
+#### 4. Feature Engineering
+Modifying existing variables and creating new ones for analysis
+
+#### 5. Model Building
+Designing, Training, Testing / Running predictive models on the Data
+
+#### 6. Visualizing & Communicating
+Telling Stories from Data with summary and learned insights
+
+While the steps 4 - 6 are more "tech-focused, jazzy/sexy and thus more appealing" to the younger minds, but the the steps 1 - 3 are often the key differentiators in the DataHack / Data Analytics Competitions and in Real Life... :-) ... 
+
+And for the practical Business / Scientific Decision Making from Data Analytics projects, steps 1 to 3 usually takes 70% or more efforts ... :-) ...
+
+I personally prefer the terms "Data Exploration" and "Data Cleaning" rather than "Data Manipulation & Exploration", which many Data Scientists casually use. Though I know many scientists often use the term "manipulation" in its true technical sense...
+
+The connotation of the term "manipulation" especially "scares" me, as Data Scientists can really "twist / manipulate facts", if they lack "Conscience / Scientific Honesty"...!
+
+For our R workshop, I request you to send the following R book (taken from a Coursera course, which most of us in the CC took) to all the registered participants:
+I have already forwarded you the "Statistics in Plain English" book in another email ... :-)
+
+[Coursera R Programming Course](https://www.coursera.org/learn/r-programming)
+[Coursera R Programming Book](https://www.cs.upc.edu/~robert/teaching/estadistica/rprogramming.pdf)
+
+I propose to hold two R workshops (each having 2-days, if possible), before Badrul Sarwar comes. 
+
+The first R workshop should focus on the basics of Statistics, hands-on exercises using R, lab assignments, home-works, one micro DataHack challenge using the above 6 steps. 
+
+The second R workshop should focus on reviewing the learning of the 1st workshop, moderate Statistics, Machine Learning in R, one mini DataHack challenge using the above 6 steps. 
+
+
+I found the following URLs / PDFs / Books interesting: (Plz have a look...)
+
+[Booz Allen Data Science Guide](https://www.boozallen.com/content/dam/boozallen/documents/2015/12/2015-FIeld-Guide-To-Data-Science.pdf)
+
+[Applied Data Science Book of Columbia Uni](https://columbia-applied-data-science.github.io/appdatasci.pdf)
+
+(light reading, easier approach, not too advanced...) [The Syracuse Uni Data Science Book](https://ischool.syr.edu/media/documents/2012/3/DataScienceBook1_1.pdf)
+
+(and a lot more resources in the famous Kaggle Wiki that one can reasonably handle ...;-)
+[A good list of Data Science Resources](https://www.kaggle.com/wiki/DataScienceBooksAndCourses)
+
+
+## Inputs and Outputs
+
+We can embed Shiny inputs and outputs in our R Markdown document, besides the stadalone ShinyApp (either merged in one `app.R` or in `server.R` and `ui.R`. 
+Outputs are automatically updated whenever inputs change.  
+This demonstrates how a standard R plot can be made interactive by wrapping it in the Shiny `renderPlot` function. (which usually stays in the `server.R` file )
+The `selectInput` and `sliderInput` functions create the input widgets used to drive the plot. (which usually stays in the `ui.R` file )
+
+```{r eruptions, echo=FALSE}
+inputPanel(
+  selectInput("n_breaks", label = "Number of bins:",
+              choices = c(10, 20, 35, 50), selected = 20),
+  
+  sliderInput("bw_adjust", label = "Bandwidth adjustment:",
+              min = 0.2, max = 2, value = 1, step = 0.2)
+)
+
+renderPlot({
+  hist(faithful$eruptions, probability = TRUE, breaks = as.numeric(input$n_breaks),
+       xlab = "Duration (minutes)", main = "Geyser eruption duration")
+  
+  dens <- density(faithful$eruptions, adjust = input$bw_adjust)
+  lines(dens, col = "blue")
+})
+```
+
+## Embedded Application
+
+It's also possible to embed an entire Shiny application within an R Markdown document using the `shinyAppDir` function. This example embeds a Shiny application located in another directory:
+
+```{r tabsets, echo=FALSE}
+shinyAppDir(
+  system.file("examples/06_tabsets", package = "shiny"),
+  options = list(
+    width = "100%", height = 550
+  )
+)
+```
+
+Note the use of the `height` parameter to determine how much vertical space the embedded application should occupy.
+
+You can also use the `shinyApp` function to define an application inline rather then in an external directory.
+
+In all of R code chunks above the `echo = FALSE` attribute is used. This is to prevent the R code within the chunk from rendering in the document alongside the Shiny components.
+
+### Violin Plots of the cars dataset
+```{r cars, echo=FALSE}
+library(vioplot)
+x1 <- mtcars$mpg[mtcars$cyl==4]
+x2 <- mtcars$mpg[mtcars$cyl==6]
+x3 <- mtcars$mpg[mtcars$cyl==8]
+vioplot(x1, x2, x3,
+    names=c("4 cyl", "6 cyl", "8 cyl"),
+    col="gold")
+    title("Violin Plots of Miles Per Gallon")
+```
+
+
