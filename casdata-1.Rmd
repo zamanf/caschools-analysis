@@ -89,7 +89,7 @@ renderPlot({
 
 ## California School Data Analysis
 
-```{r load_packages, message=FALSE, results='hide'}
+```{r load_packages, echo=FALSE, message=FALSE, results='hide'}
 # if necessary uncomment and install packages.
 # install.packages("AER")
 # install.packages("psych")
@@ -103,7 +103,7 @@ library(ggplot2) # plots: ggplot and qplot
 library(relaimpo) # relative importance in regression
 ```
 
-```{r load_data}
+```{r load_data, echo=FALSE, message=FALSE, results='hide'}
 # load the California Schools Dataset and give the dataset a shorter name
 data(CASchools)
 cas <- CASchools
@@ -139,7 +139,7 @@ Quoting the help (i.e., `?CASchools`), the data is "from all 420 K-6 and K-8 dis
 
 Let's look at the basic structure of the data frame. i.e., the number of observations and the types of values:
 
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 str(cas)
 # Hmisc::describe(cas) # For more extensive summary statistics
 ```
@@ -147,7 +147,7 @@ str(cas)
 
 
 ### Q. 2  To what extent does expenditure per student vary?
-```{r cas2, message=FALSE}
+```{r cas2, echo=FALSE, message=FALSE, results='hide'}
 qplot(expenditure, data = cas) + xlim(0, 8000) + 
 		xlab("Money spent per student ($)") +
 		ylab("Count of schools")
@@ -159,7 +159,7 @@ The greatest expenditure per student is around double that of the least expendit
 
 
 ### Q. 3a  What predicts expenditure per student?
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 # Compute and format set of correlations
 corExp <- cor(cas["expenditure"], 
 		cas[setdiff(v, "expenditure")])
@@ -176,7 +176,7 @@ More is spent per student in schools :
 
 
 ### Q. 4  what is the relationship between district level maths and reading scores?
-```{r cas4, message=FALSE}
+```{r cas4, echo=FALSE, message=FALSE, results='hide'}
 ggplot(cas, aes(read, math)) + geom_point() + 
 		geom_smooth()
 ```
@@ -186,7 +186,7 @@ At the district level, the correlation is very strong (r = The correlation is `r
 ### Q. 5 What is the relationship between maths and reading after partialling out other effects?
 
 
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 # command has strange syntax requiring column numbers rather than variable names
 partial.r(cas[v], 
           c(which(names(cas[v]) == "read"), which(names(cas[v]) == "math")), 
@@ -198,7 +198,7 @@ The partial correlation is still very strong but is substantially reduced.
 
 
 ### Q. 6 What fraction of a computer does each student have?
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 cas$compstud <- cas$computer / cas$students
 describe(cas$compstud)
 qplot(compstud, data = cas)
@@ -208,7 +208,7 @@ The mean number of computers per student is `r round(mean(cas$compstud), 3)`.
 
 
 ### Q. 7 What is a good model of the combined effect of other variables on academic performance (i.e., math and read)?
-```{r cas7}
+```{r cas7, echo=FALSE, message=FALSE, results='hide'}
 # Examine correlations between variables
 psych::pairs.panels(cas[v])
 ```
@@ -216,7 +216,7 @@ psych::pairs.panels(cas[v])
 `pairs.panels` shows correlations in the upper triangle, scatterplots in the lower triangle, and variable names and distributions on the main diagonal.
 After examining the plot several ideas emerge.
 
-```{r cas7.transformation, tidy=FALSE}
+```{r cas7.transformation, echo=FALSE, message=FALSE, results='hide', tidy=FALSE}
 # (a) students is a count and could be log transformed
 cas$studentsLog <- log(cas$students)
 
@@ -237,7 +237,7 @@ cas$performance <- as.numeric(
 Normally, I'd add all these transformations to an initial data transformation file that I call in the first block, but for the sake of the narrative, I'll leave them here.
 
 Let's examine correlations between predictors and outcome.
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 m1cor <- cor(cas$performance, 
 		cas[c("studentsLog", "studteach",	"calworks",  
 						"lunch", "compstud", "income", 
@@ -247,14 +247,14 @@ t(round(m1cor, 2))
 
 
 Let's examine the multiple regression.
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 m1 <- lm(performance ~ studentsLog + studteach + 
 				calworks + lunch + compstud
 				+ income + expenditure + grades, data = cas)		
 summary(m1)
 ```
 And some indicators of predictor relative importance.
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 # calc.relimp from relaimpo package.
 (m1relaimpo <- calc.relimp(m1,	type="lmg",	rela=TRUE))
 ```
@@ -271,7 +271,7 @@ Of course this is all observational data with the usual caveats regarding causal
 ## Now, let's look at some weird stuff.
 ### Q. 8.1 What are common words in Californian School names?
 
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 # create a vector of the words that occur in school names
 lw <- unlist(strsplit(cas$school, split = " "))
 
@@ -291,13 +291,23 @@ tlw2p <- round(tlw2 / nrow(cas), 3)
 tlw2pdf <- data.frame(word = names(tlw2p), 
 		prop = as.numeric(tlw2p),
 		stringsAsFactors = FALSE)
-ggplot(tlw2pdf, aes(word, prop)) + geom_bar() + coord_flip()
+
+## Error: stat_count() must not be used with a y aesthetic.
+### the deafult arg in geom_bar() is stat=stat_count() ...
+
+## ggplot(tlw2pdf, aes(word, prop)) + geom_bar() + coord_flip()
+
+ggplot(tlw2pdf, aes(word, prop)) + geom_bar(stat="identity") + coord_flip()
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 # make it log counts
+# stat="identity"
+# ggplot(tlw2pdf, aes(word, log(prop*nrow(cas)))) + 
+# 		geom_bar() + coord_flip()
+
 ggplot(tlw2pdf, aes(word, log(prop*nrow(cas)))) + 
-		geom_bar() + coord_flip()
+		geom_bar(stat="identity") + coord_flip()
 ```
 
 The word "Elementary" appears in almost all school names (`r round(100 * tlw2p["Elementary"], 1)`%).  The word "Union" appears in around half (`r round(100 * tlw2p["Union"], 1)`%).
@@ -311,7 +321,7 @@ Other common words pertain to:
 
 
 ### Q. 8.2 Is the number of letters in the school's name related to academic performance?
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 cas$namelen <- nchar(cas$school)
 table(cas$namelen)
 round(cor(cas$namelen, cas[,c("read", "math")]), 2)
@@ -320,7 +330,7 @@ The answer appears to be "no".
 
 
 ### Q.  8.3 Is the number of words in the school name related to academic performance?
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 cas$nameWordCount <- 
 		sapply(strsplit(cas$school, " "), length)
 table(cas$nameWordCount)
@@ -330,11 +340,11 @@ The answer appears to be "no".
 
 
 ### Q. 8.4 Are schools with nice popular nature words in their name doing better academically?
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 tlw2p #recall the list of popular names
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 # Create a quick and dirty list of popular nature names
 naturenames <- c("Valley", "View", "Creek", 
 		"Lake", "Mountain",	"Park", "Rio", 
@@ -349,7 +359,7 @@ round(cor(cas$hasNature, cas[,c("read", "math")]), 2)
 So we've found a small correlation.  
 Let's graph the data to see what it means:
 
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 ggplot(cas, aes(hasNature, read)) + 
         geom_boxplot() + 
 		geom_jitter(position=position_jitter(width=0.1)) +
@@ -359,7 +369,7 @@ ggplot(cas, aes(hasNature, read)) +
 So in the sample nature schools have slightly better reading score (and if we were to graph it, maths scores). However, the number of schools having nature names is actually somewhat small (n= `r sum(cas$hasNature)`) despite the overall quite large sample size.
 
 But is it statistically significant?
-```{r}
+```{r echo=FALSE, message=FALSE, results='hide'}
 t.read <- t.test(cas[cas$hasNature, "read"], cas[!cas$hasNature, "read"])
 t.math <- t.test(cas[cas$hasNature, "math"], cas[!cas$hasNature, "math"])
 ```
@@ -387,7 +397,7 @@ In particular, I can see R Markdown being my tool of choice for:
 The real question is how far I can push Markdown before I start to miss the control of LaTeX.  Markdown does permit arbitrary HTML. Anyway, if you have any thoughts about the scope of R Markdown, feel free to add a comment.
 
 ### Violin Plots of the cars dataset
-```{r cars, echo=FALSE}
+```{r violinplot, echo=FALSE, message=FALSE, results='hide'}
 library(vioplot)
 x1 <- mtcars$mpg[mtcars$cyl==4]
 x2 <- mtcars$mpg[mtcars$cyl==6]
